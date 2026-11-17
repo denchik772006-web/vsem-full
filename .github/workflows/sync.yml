@@ -1,0 +1,26 @@
+name: Sync index.html to mirror repos
+
+on:
+  push:
+    branches: [main]
+    paths: ['index.html', 'favicon.png']
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        repo: ['denchik772006-web/---', 'denchik772006-web/vsem-full.online']
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Push files to mirror
+        run: |
+          git clone "https://x-access-token:${{ secrets.SYNC_TOKEN }}@github.com/${{ matrix.repo }}.git" mirror
+          cp index.html favicon.png mirror/
+          cd mirror
+          git config user.name "sync-bot"
+          git config user.email "actions@github.com"
+          git add .
+          git commit -m "Sync from main repo" || echo "nothing to commit"
+          git push
